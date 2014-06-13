@@ -33,6 +33,17 @@ GEM
     builder (3.2.2)
     cancancan (1.8.0)
     coderay (1.1.0)
+    dalli (2.7.2)
+    delayed_job (4.0.1)
+      activesupport (>= 3.0, < 4.2)
+    delayed_job_active_record (4.0.1)
+      activerecord (>= 3.0, < 4.2)
+      delayed_job (>= 3.0, < 4.1)
+    dotenv (0.11.1)
+      dotenv-deployment (~> 0.0.2)
+    dotenv-deployment (0.0.2)
+    dotenv-rails (0.11.1)
+      dotenv (= 0.11.1)
     erubis (2.7.0)
     eventmachine (1.0.3)
     execjs (2.0.2)
@@ -55,12 +66,14 @@ GEM
     mail (2.5.4)
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
+    memcachier (0.0.2)
     method_source (0.8.2)
     mime-types (1.25.1)
     minitest (5.3.3)
     multi_json (1.10.0)
     multi_xml (0.5.5)
     multipart-post (2.0.0)
+    newrelic_rpm (3.8.1.221)
     oauth2 (0.9.3)
       faraday (>= 0.8, < 0.10)
       jwt (~> 0.1.8)
@@ -148,10 +161,15 @@ PLATFORMS
 DEPENDENCIES
   bootstrap-sass (~> 3.1.1)
   cancancan (~> 1.8)
+  dalli
+  delayed_job_active_record
+  dotenv-rails
   eventmachine
   faye-websocket
   jbuilder (~> 2.0)
   jquery-rails
+  memcachier
+  newrelic_rpm
   oauth2
   pg
   pry-rails

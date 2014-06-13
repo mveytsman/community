@@ -9,6 +9,13 @@ gem 'pg'
 
 gem 'redis'
 
+gem 'dalli'
+gem 'memcachier' # this just sets environmental variables
+
+gem 'delayed_job_active_record'
+
+gem 'newrelic_rpm'
+
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.3'
 gem 'bootstrap-sass', '~> 3.1.1'
@@ -36,6 +43,7 @@ gem 'pry-rails'
 group :development do
   gem 'pry-remote'
   gem 'quiet_assets'
+  gem 'dotenv-rails'
 end
 
 # Use puma as the app server

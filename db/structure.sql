@@ -30,6 +30,45 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: delayed_jobs; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE delayed_jobs (
+    id integer NOT NULL,
+    priority integer DEFAULT 0 NOT NULL,
+    attempts integer DEFAULT 0 NOT NULL,
+    handler text NOT NULL,
+    last_error text,
+    run_at timestamp without time zone,
+    locked_at timestamp without time zone,
+    failed_at timestamp without time zone,
+    locked_by character varying(255),
+    queue character varying(255),
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
+-- Name: delayed_jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE delayed_jobs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: delayed_jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE delayed_jobs_id_seq OWNED BY delayed_jobs.id;
+
+
+--
 -- Name: discussion_threads; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -171,6 +210,23 @@ ALTER SEQUENCE subforums_id_seq OWNED BY subforums.id;
 
 
 --
+-- Name: users; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE users (
+    id integer NOT NULL,
+    first_name character varying(255),
+    last_name character varying(255),
+    email character varying(255),
+    avatar_url character varying(255),
+    batch_name character varying(255),
+    hacker_school_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+--
 -- Name: visited_statuses; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -190,17 +246,24 @@ CREATE TABLE visited_statuses (
 --
 
 CREATE VIEW subforums_with_visited_status AS
- SELECT subforums.id,
-    subforums.name,
-    subforums.subforum_group_id,
-    subforums.created_at,
-    subforums.updated_at,
-    subforums.marked_unread_at,
-    visited_statuses.last_visited,
-    visited_statuses.user_id
-   FROM (subforums
-   LEFT JOIN visited_statuses ON ((subforums.id = visited_statuses.visitable_id)))
-  WHERE (((visited_statuses.visitable_type)::text = 'Subforum'::text) OR (visited_statuses.visitable_type IS NULL));
+ SELECT subforum_users.id,
+    subforum_users.name,
+    subforum_users.subforum_group_id,
+    subforum_users.created_at,
+    subforum_users.updated_at,
+    subforum_users.marked_unread_at,
+    subforum_users.user_id,
+    visited_statuses.last_visited
+   FROM (( SELECT subforums.id,
+            subforums.name,
+            subforums.subforum_group_id,
+            subforums.created_at,
+            subforums.updated_at,
+            subforums.marked_unread_at,
+            users.id AS user_id
+           FROM subforums,
+            users) subforum_users
+   LEFT JOIN visited_statuses ON ((((subforum_users.id = visited_statuses.visitable_id) AND ((subforum_users.user_id = visited_statuses.user_id) OR (visited_statuses.user_id IS NULL))) AND ((visited_statuses.visitable_type)::text = 'Subforum'::text))));
 
 
 --
@@ -208,35 +271,26 @@ CREATE VIEW subforums_with_visited_status AS
 --
 
 CREATE VIEW threads_with_visited_status AS
- SELECT discussion_threads.id,
-    discussion_threads.title,
-    discussion_threads.subforum_id,
-    discussion_threads.created_by_id,
-    discussion_threads.created_at,
-    discussion_threads.updated_at,
-    discussion_threads.marked_unread_at,
-    visited_statuses.last_visited,
-    visited_statuses.user_id
-   FROM (discussion_threads
-   LEFT JOIN visited_statuses ON ((discussion_threads.id = visited_statuses.visitable_id)))
-  WHERE (((visited_statuses.visitable_type)::text = 'DiscussionThread'::text) OR (visited_statuses.visitable_type IS NULL));
-
-
---
--- Name: users; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE users (
-    id integer NOT NULL,
-    first_name character varying(255),
-    last_name character varying(255),
-    email character varying(255),
-    avatar_url character varying(255),
-    batch_name character varying(255),
-    hacker_school_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
+ SELECT thread_users.id,
+    thread_users.title,
+    thread_users.subforum_id,
+    thread_users.created_by_id,
+    thread_users.created_at,
+    thread_users.updated_at,
+    thread_users.marked_unread_at,
+    thread_users.user_id,
+    visited_statuses.last_visited
+   FROM (( SELECT discussion_threads.id,
+            discussion_threads.title,
+            discussion_threads.subforum_id,
+            discussion_threads.created_by_id,
+            discussion_threads.created_at,
+            discussion_threads.updated_at,
+            discussion_threads.marked_unread_at,
+            users.id AS user_id
+           FROM discussion_threads,
+            users) thread_users
+   LEFT JOIN visited_statuses ON ((((thread_users.id = visited_statuses.visitable_id) AND ((thread_users.user_id = visited_statuses.user_id) OR (visited_statuses.user_id IS NULL))) AND ((visited_statuses.visitable_type)::text = 'DiscussionThread'::text))));
 
 
 --
@@ -281,6 +335,13 @@ ALTER SEQUENCE visited_statuses_id_seq OWNED BY visited_statuses.id;
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY delayed_jobs ALTER COLUMN id SET DEFAULT nextval('delayed_jobs_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE ONLY discussion_threads ALTER COLUMN id SET DEFAULT nextval('discussion_threads_id_seq'::regclass);
 
 
@@ -317,6 +378,14 @@ ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regcl
 --
 
 ALTER TABLE ONLY visited_statuses ALTER COLUMN id SET DEFAULT nextval('visited_statuses_id_seq'::regclass);
+
+
+--
+-- Name: delayed_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY delayed_jobs
+    ADD CONSTRAINT delayed_jobs_pkey PRIMARY KEY (id);
 
 
 --
@@ -365,6 +434,13 @@ ALTER TABLE ONLY users
 
 ALTER TABLE ONLY visited_statuses
     ADD CONSTRAINT visited_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: delayed_jobs_priority; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX delayed_jobs_priority ON delayed_jobs USING btree (priority, run_at);
 
 
 --
@@ -436,4 +512,8 @@ INSERT INTO schema_migrations (version) VALUES ('20140605223603');
 INSERT INTO schema_migrations (version) VALUES ('20140605224228');
 
 INSERT INTO schema_migrations (version) VALUES ('20140606154516');
+
+INSERT INTO schema_migrations (version) VALUES ('20140609195302');
+
+INSERT INTO schema_migrations (version) VALUES ('20140611152940');
 

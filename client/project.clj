@@ -7,16 +7,16 @@
 
   :plugins [[lein-cljsbuild "1.0.2"]]
 
-  :cljsbuild {:builds [{:id "community-dev"
+  :cljsbuild {:builds [{:id "dev"
                         :source-paths ["src"]
                         :compiler {:output-to "../public/client/client-dev.js"
                                    :output-dir "../public/client/client-dev"
                                    :optimizations :none
                                    :pretty-print true
-                                   :source-map true}}
-                       {:id "community-prod"
+                                   :source-map "../public/client/client-dev.js.map"}}
+                       {:id "prod"
                         :source-paths ["src"]
                         :compiler {:output-to "../app/assets/javascripts/client-prod.js"
                                    :optimizations :advanced
                                    :pretty-print false
-                                   :externs ["react-externs.js"]}}]})
+                                   :externs ["react-externs.js" "markdown-externs.js"]}}]})

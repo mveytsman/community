@@ -7,9 +7,8 @@ class SessionsController < ApplicationController
     if params.has_key?(:code)
       token = client.auth_code.get_token(params[:code], redirect_uri: login_complete_url)
       user_data = JSON.parse(token.get("/api/v1/people/me").body)
-      batch_data = JSON.parse(token.get("/api/v1/batches/#{user_data["batch_id"]}").body)
 
-      user = User.create_or_update(user_data: user_data, batch_data: batch_data)
+      user = User.create_or_update_from_api_data(user_data)
 
       login(user)
 
@@ -27,10 +26,6 @@ class SessionsController < ApplicationController
 
 private
   def client
-    client_id = ENV["HACKER_SCHOOL_CLIENT_ID"]
-    client_secret = ENV["HACKER_SCHOOL_CLIENT_SECRET"]
-    site = ENV["HACKER_SCHOOL_SITE"] || "https://www.hackerschool.com"
-
-    @client ||= OAuth2::Client.new(client_id, client_secret, site: site)
+    @client ||= HackerSchool.new.client
   end
 end
