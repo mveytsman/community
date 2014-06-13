@@ -173,7 +173,7 @@
     (render [this]
       (html
         (if thread
-          [:div
+          [:div#thread
            [:h1 (:title thread)]
            [:ol.list-unstyled (om/build-all post-component (:posts thread) {:key :id})]
            (om/build post-form-component nil
