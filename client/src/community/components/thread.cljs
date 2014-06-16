@@ -116,7 +116,7 @@
         [:div.row
           [:div.post-controls
            (when (and (:editable post) (not editing?))
-             [:a {:href "#"
+             [:a.btn.btn-default {:href "#"
                   :onClick (fn [e]
                              (.preventDefault e)
                              (om/set-state! owner :editing? true))}
